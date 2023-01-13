@@ -1,4 +1,5 @@
 import java.time.Duration
+import java.net.URI
 
 plugins {
     kotlin("jvm")
@@ -126,7 +127,10 @@ publishing {
 
 nexusPublishing {
     repositories {
-        sonatype()
+        sonatype() {
+            this.nexusUrl.set(URI("https://s01.oss.sonatype.org/content/repositories/releases/"))
+            this.snapshotRepositoryUrl.set(URI("https://s01.oss.sonatype.org/content/repositories/snapshots"))
+        }
     }
 
     clientTimeout.set(Duration.ofMinutes(30))

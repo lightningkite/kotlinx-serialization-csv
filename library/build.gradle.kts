@@ -95,19 +95,24 @@ publishing {
                 }
                 developers {
                     developer {
+                        id.set("LightningKiteJoseph")
+                        name.set("Joseph Ivie")
+                        email.set("joseph@lightningkite.com")
+                    }
+                    developer {
                         id.set("brudaswen")
                         name.set("Sven Obser")
                         email.set("dev@brudaswen.de")
                     }
                 }
                 scm {
-                    connection.set("scm:git:git://github.com/brudaswen/kotlinx-serialization-csv.git")
-                    developerConnection.set("scm:git:ssh://git@github.com:brudaswen/kotlinx-serialization-csv.git")
-                    url.set("https://github.com/brudaswen/kotlinx-serialization-csv/")
+                    connection.set("scm:git:git://github.com/lightningkite/kotlinx-serialization-csv.git")
+                    developerConnection.set("scm:git:ssh://git@github.com:lightningkite/kotlinx-serialization-csv.git")
+                    url.set("https://github.com/lightningkite/kotlinx-serialization-csv/")
                 }
                 issueManagement {
                     system.set("GitHub Issues")
-                    url.set("https://github.com/brudaswen/kotlinx-serialization-csv/issues/")
+                    url.set("https://github.com/lightningkite/kotlinx-serialization-csv/issues/")
                 }
             }
 

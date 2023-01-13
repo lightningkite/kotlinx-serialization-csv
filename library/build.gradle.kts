@@ -98,6 +98,8 @@ publishing {
                         id.set("LightningKiteJoseph")
                         name.set("Joseph Ivie")
                         email.set("joseph@lightningkite.com")
+                        organization.set("Lightning Kite")
+                        organizationUrl.set("https://lightningkite.com")
                     }
                     developer {
                         id.set("brudaswen")

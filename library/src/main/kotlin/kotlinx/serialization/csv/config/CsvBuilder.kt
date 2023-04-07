@@ -29,7 +29,7 @@ class CsvBuilder internal constructor(conf: CsvConfig = CsvConfig.Default) {
     /**
      * Ignore empty lines during parsing (default: `true`).
      */
-    var ignoreUnquotedWhitespace: Boolean = conf.ignoreUnquotedWhitespace
+    var trimUnquotedWhitespace: Boolean = conf.trimUnquotedWhitespace
 
     /**
      * The escape character used to escape reserved characters in a column value.
@@ -109,7 +109,7 @@ class CsvBuilder internal constructor(conf: CsvConfig = CsvConfig.Default) {
             recordSeparator = recordSeparator,
             quoteChar = quoteChar,
             quoteMode = quoteMode,
-            ignoreUnquotedWhitespace = ignoreUnquotedWhitespace,
+            trimUnquotedWhitespace = trimUnquotedWhitespace,
             escapeChar = escapeChar,
             nullString = nullString,
             ignoreEmptyLines = ignoreEmptyLines,

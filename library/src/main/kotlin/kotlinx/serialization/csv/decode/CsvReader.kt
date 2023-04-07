@@ -56,7 +56,7 @@ internal class CsvReader(private val source: Source, private val config: CsvConf
             value.append(char.toChar())
         }
 
-        return if(config.ignoreUnquotedWhitespace) value.toString().trim()
+        return if(config.trimUnquotedWhitespace) value.toString().trim()
         else value.toString()
     }
 

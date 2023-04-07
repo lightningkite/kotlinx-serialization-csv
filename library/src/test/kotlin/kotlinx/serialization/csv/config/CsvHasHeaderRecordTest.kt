@@ -74,7 +74,7 @@ class CsvHasHeaderRecordTest {
     @Test
     fun testMultipleColumnsRN() = Csv {
         hasHeaderRecord = true
-        ignoreUnquotedWhitespace = true
+        trimUnquotedWhitespace = true
     }.assertDecode(
         "a,b\r\n1,testing",
         IntStringRecord(1, "testing"),

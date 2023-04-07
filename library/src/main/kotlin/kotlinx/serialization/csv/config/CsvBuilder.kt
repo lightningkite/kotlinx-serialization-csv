@@ -27,6 +27,11 @@ class CsvBuilder internal constructor(conf: CsvConfig = CsvConfig.Default) {
     var quoteMode: QuoteMode = conf.quoteMode
 
     /**
+     * Ignore empty lines during parsing (default: `true`).
+     */
+    var ignoreUnquotedWhitespace: Boolean = conf.ignoreUnquotedWhitespace
+
+    /**
      * The escape character used to escape reserved characters in a column value.
      */
     var escapeChar: Char? = conf.escapeChar
@@ -100,18 +105,19 @@ class CsvBuilder internal constructor(conf: CsvConfig = CsvConfig.Default) {
         }
 
         return CsvConfig(
-            delimiter,
-            recordSeparator,
-            quoteChar,
-            quoteMode,
-            escapeChar,
-            nullString,
-            ignoreEmptyLines,
-            hasHeaderRecord,
-            headerSeparator,
-            ignoreUnknownColumns,
-            hasTrailingDelimiter,
-            serializersModule,
+            delimiter = delimiter,
+            recordSeparator = recordSeparator,
+            quoteChar = quoteChar,
+            quoteMode = quoteMode,
+            ignoreUnquotedWhitespace = ignoreUnquotedWhitespace,
+            escapeChar = escapeChar,
+            nullString = nullString,
+            ignoreEmptyLines = ignoreEmptyLines,
+            hasHeaderRecord = hasHeaderRecord,
+            headerSeparator = headerSeparator,
+            ignoreUnknownColumns = ignoreUnknownColumns,
+            hasTrailingDelimiter = hasTrailingDelimiter,
+            serializersModule = serializersModule,
         )
     }
 }

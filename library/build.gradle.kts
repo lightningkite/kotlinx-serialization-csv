@@ -1,4 +1,5 @@
 import java.time.Duration
+import java.net.URI
 
 plugins {
     kotlin("jvm")
@@ -95,19 +96,26 @@ publishing {
                 }
                 developers {
                     developer {
+                        id.set("LightningKiteJoseph")
+                        name.set("Joseph Ivie")
+                        email.set("joseph@lightningkite.com")
+                        organization.set("Lightning Kite")
+                        organizationUrl.set("https://lightningkite.com")
+                    }
+                    developer {
                         id.set("brudaswen")
                         name.set("Sven Obser")
                         email.set("dev@brudaswen.de")
                     }
                 }
                 scm {
-                    connection.set("scm:git:git://github.com/brudaswen/kotlinx-serialization-csv.git")
-                    developerConnection.set("scm:git:ssh://git@github.com:brudaswen/kotlinx-serialization-csv.git")
-                    url.set("https://github.com/brudaswen/kotlinx-serialization-csv/")
+                    connection.set("scm:git:git://github.com/lightningkite/kotlinx-serialization-csv.git")
+                    developerConnection.set("scm:git:ssh://git@github.com:lightningkite/kotlinx-serialization-csv.git")
+                    url.set("https://github.com/lightningkite/kotlinx-serialization-csv/")
                 }
                 issueManagement {
                     system.set("GitHub Issues")
-                    url.set("https://github.com/brudaswen/kotlinx-serialization-csv/issues/")
+                    url.set("https://github.com/lightningkite/kotlinx-serialization-csv/issues/")
                 }
             }
 
@@ -119,7 +127,10 @@ publishing {
 
 nexusPublishing {
     repositories {
-        sonatype()
+        sonatype() {
+            this.nexusUrl.set(URI("https://s01.oss.sonatype.org/content/repositories/releases/"))
+            this.snapshotRepositoryUrl.set(URI("https://s01.oss.sonatype.org/content/repositories/snapshots"))
+        }
     }
 
     clientTimeout.set(Duration.ofMinutes(30))

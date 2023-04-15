@@ -8,7 +8,7 @@ plugins {
 val serializationVersion = "1.0.0"
 
 allprojects {
-    group = "de.brudaswen.kotlinx.serialization"
+    group = "com.lightningkite"
 
     extra["serializationVersion"] = serializationVersion
 
@@ -32,7 +32,7 @@ release {
 val mavenCentralUsername: String? by project
 val mavenCentralPassword: String? by project
 nexusStaging {
-    packageGroup = "de.brudaswen"
+    packageGroup = "com.lightningkite"
     username = mavenCentralUsername
     password = mavenCentralPassword
     numberOfRetries = 60

@@ -25,6 +25,7 @@ internal data class CsvConfig(
     val recordSeparator: String = "\n",
     val quoteChar: Char = '"',
     val quoteMode: QuoteMode = QuoteMode.MINIMAL,
+    val trimUnquotedWhitespace: Boolean = false,
     val escapeChar: Char? = null,
     val nullString: String = "",
     val ignoreEmptyLines: Boolean = true,

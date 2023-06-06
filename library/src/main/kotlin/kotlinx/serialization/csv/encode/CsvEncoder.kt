@@ -1,6 +1,7 @@
 package kotlinx.serialization.csv.encode
 
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.csv.Csv
 import kotlinx.serialization.csv.HeadersNotSupportedForSerialDescriptorException
 import kotlinx.serialization.csv.UnsupportedSerialDescriptorException
@@ -117,19 +118,17 @@ internal abstract class CsvEncoder(
     }
 
     private fun printHeader(prefix: String, descriptor: SerialDescriptor) {
-        when (descriptor.kind) {
-            is StructureKind.LIST,
-            is StructureKind.MAP,
-            is PolymorphicKind.OPEN -> {
-                throw HeadersNotSupportedForSerialDescriptorException(descriptor)
-            }
-        }
-
         for (i in 0 until descriptor.elementsCount) {
             val name = prefix + descriptor.getElementName(i)
             val childDesc = descriptor.getElementDescriptor(i)
 
             when {
+                (childDesc.kind is StructureKind.LIST ||
+                childDesc.kind is StructureKind.MAP ||
+                childDesc.kind is PolymorphicKind.OPEN) && config.deferToFormatWhenVariableColumns != null -> {
+                    writer.printColumn(name)
+                }
+
                 // TODO Check
                 childDesc.kind is SerialKind.CONTEXTUAL ->
                     writer.printColumn(name)
@@ -167,5 +166,22 @@ internal abstract class CsvEncoder(
         isNull: Boolean = false
     ) {
         writer.printColumn(value, isNumeric, isNull)
+    }
+
+    override fun <T> encodeSerializableValue(serializer: SerializationStrategy<T>, value: T) {
+        if (config.deferToFormatWhenVariableColumns != null) {
+            when (serializer.descriptor.kind) {
+                is StructureKind.LIST,
+                is StructureKind.MAP,
+                is PolymorphicKind.OPEN -> {
+                    encodeColumn(
+                        value = config.deferToFormatWhenVariableColumns!!.encodeToString(serializer, value),
+                        isNumeric = false,
+                        isNull = false
+                    )
+                }
+                else -> super.encodeSerializableValue(serializer, value)
+            }
+        } else super.encodeSerializableValue(serializer, value)
     }
 }

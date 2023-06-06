@@ -84,7 +84,11 @@ internal class CsvWriter(private val sb: Appendable, private val config: CsvConf
     /** Check if given [value] contains reserved chars that require quoting. */
     private fun requiresQuoting(value: String): Boolean {
         val chars = with(config) { "${delimiter}${quoteChar}${recordSeparator}" }
-        return value.contains("[${Regex.escape(chars)}]".toRegex())
+        return value.contains("[${Regex.escape(chars)}]".toRegex()) || (
+                config.trimUnquotedWhitespace &&
+                        value.length > 1 &&
+                        (value.first().isWhitespace() || value.last().isWhitespace())
+                )
     }
 
     /** Escape all [escapeCharacters] in this [String] using [escapeChar]. */

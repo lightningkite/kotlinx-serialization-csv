@@ -4,6 +4,8 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.*
 import kotlinx.serialization.csv.Csv
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.test.assertEncodeAndDecode
 import kotlin.test.Test
 
@@ -118,9 +120,56 @@ class CsvCollectionsTest {
         ),
         ListSerializer(Record.serializer())
     )
+
+    @Test fun deferToFormatWhenVariableColumns() = Csv {
+        this.deferToFormatWhenVariableColumns = Json
+    }.assertEncodeAndDecode(
+        expected = """
+            0,[]
+            1,[1]
+            2,"[1,2]"
+            3,"[1,2,3]"
+            4,"[1,2,3,4]"
+        """.trimIndent(),
+        original = listOf(
+            Record2(0, listOf()),
+            Record2(1, listOf(1)),
+            Record2(2, listOf(1, 2)),
+            Record2(3, listOf(1, 2, 3)),
+            Record2(4, listOf(1, 2, 3, 4)),
+        ),
+        serializer = ListSerializer(Record2.serializer())
+    )
+    @Test fun deferToFormatWhenVariableColumnsHeaders() = Csv {
+        this.deferToFormatWhenVariableColumns = Json
+        this.hasHeaderRecord = true
+    }.assertEncodeAndDecode(
+        expected = """
+            simple,list
+            0,[]
+            1,[1]
+            2,"[1,2]"
+            3,"[1,2,3]"
+            4,"[1,2,3,4]"
+        """.trimIndent(),
+        original = listOf(
+            Record2(0, listOf()),
+            Record2(1, listOf(1)),
+            Record2(2, listOf(1, 2)),
+            Record2(3, listOf(1, 2, 3)),
+            Record2(4, listOf(1, 2, 3, 4)),
+        ),
+        serializer = ListSerializer(Record2.serializer())
+    )
 }
 
 @Serializable
 data class Record(
     val map: Map<List<Int>, List<Int>>
+)
+
+@Serializable
+data class Record2(
+    val simple: Int,
+    val list: List<Int>
 )

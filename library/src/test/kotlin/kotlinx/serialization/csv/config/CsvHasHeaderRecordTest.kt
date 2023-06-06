@@ -72,12 +72,12 @@ class CsvHasHeaderRecordTest {
     )
 
     @Test
-    fun testMultipleColumnsRN() = Csv {
+    fun testMultipleColumnsTrim() = Csv {
         hasHeaderRecord = true
         trimUnquotedWhitespace = true
-    }.assertDecode(
-        "a,b\r\n1,testing",
-        IntStringRecord(1, "testing"),
+    }.assertEncodeAndDecode(
+        "a,b\n1,\" testing \"",
+        IntStringRecord(1, " testing "),
         IntStringRecord.serializer()
     )
 

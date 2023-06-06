@@ -1,6 +1,7 @@
 package kotlinx.serialization.csv.config
 
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.StringFormat
 import kotlinx.serialization.modules.EmptySerializersModule
 import kotlinx.serialization.modules.SerializersModule
 
@@ -34,6 +35,7 @@ internal data class CsvConfig(
     val ignoreUnknownColumns: Boolean = false,
     val hasTrailingDelimiter: Boolean = false,
     val serializersModule: SerializersModule = EmptySerializersModule,
+    val deferToFormatWhenVariableColumns: StringFormat? = null
 ) {
 
     companion object {

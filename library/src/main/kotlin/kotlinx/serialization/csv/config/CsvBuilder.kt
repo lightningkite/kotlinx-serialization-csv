@@ -1,6 +1,7 @@
 package kotlinx.serialization.csv.config
 
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.StringFormat
 import kotlinx.serialization.csv.Csv
 import kotlinx.serialization.modules.SerializersModule
 
@@ -71,6 +72,11 @@ class CsvBuilder internal constructor(conf: CsvConfig = CsvConfig.Default) {
      */
     var serializersModule: SerializersModule = conf.serializersModule
 
+    /**
+     * An alternative format to use when serializing items with variable size, such as lists.
+     */
+    var deferToFormatWhenVariableColumns: StringFormat? = null
+
     @OptIn(ExperimentalSerializationApi::class)
     internal fun build(): CsvConfig {
         require(delimiter != quoteChar) {
@@ -118,6 +124,7 @@ class CsvBuilder internal constructor(conf: CsvConfig = CsvConfig.Default) {
             ignoreUnknownColumns = ignoreUnknownColumns,
             hasTrailingDelimiter = hasTrailingDelimiter,
             serializersModule = serializersModule,
+            deferToFormatWhenVariableColumns = deferToFormatWhenVariableColumns,
         )
     }
 }

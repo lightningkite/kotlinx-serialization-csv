@@ -24,6 +24,7 @@ dependencies {
 
     testImplementation(kotlin("test-junit5"))
     testImplementation("org.junit.jupiter:junit-jupiter:5.7.0")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$serializationVersion")
 }
 
 java {

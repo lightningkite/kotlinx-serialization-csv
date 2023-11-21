@@ -100,4 +100,79 @@ class CsvNestedRecordTest {
         ),
         ListSerializer(NestedRecord.serializer())
     )
+
+    @Test
+    fun testNestedRecordNullableListWithHeader() = Csv {
+        hasHeaderRecord = true
+    }.assertEncodeAndDecode(
+        "time,name,data,data.location,data.location.lat,data.location.lon,data.speed,data.info,alternative\n0,Alice,true,true,0.0,1.0,100,info,Albert\n1,Bob,false,,,,,,Bill\n3,Charlie,true,false,,,120,info3,Celina",
+        listOf(
+            NestedRecordWithNullableField(
+                0,
+                "Alice",
+                DataWithNullableField(
+                    Location(
+                        0.0,
+                        1.0
+                    ), 100, "info"
+                ),
+                "Albert"
+            ),
+            NestedRecordWithNullableField(
+                1,
+                "Bob",
+                null,
+                "Bill"
+            ),
+            NestedRecordWithNullableField(
+                3,
+                "Charlie",
+                DataWithNullableField(
+                    null, 120,  "info3"
+                ),
+                "Celina"
+            )
+        ),
+        ListSerializer(NestedRecordWithNullableField.serializer()),
+        printResult = true
+    )
+
+    @Test
+    fun testNestedRecordNullableListWithoutHeader() = Csv {
+        hasHeaderRecord = false
+    }.assertEncodeAndDecode(
+        "0,Alice,true,true,0.0,1.0,100,info,Albert\n1,Bob,false,,,,,,Bill\n3,Charlie,true,false,,,120,info3,Celina",
+        listOf(
+            NestedRecordWithNullableField(
+                0,
+                "Alice",
+                DataWithNullableField(
+                    Location(
+                        0.0,
+                        1.0
+                    ), 100, "info"
+                ),
+                "Albert"
+            ),
+            NestedRecordWithNullableField(
+                1,
+                "Bob",
+                null,
+                "Bill"
+            ),
+            NestedRecordWithNullableField(
+                3,
+                "Charlie",
+                DataWithNullableField(
+                    null, 120,  "info3"
+                ),
+                "Celina"
+            )
+        ),
+        ListSerializer(NestedRecordWithNullableField.serializer()),
+        printResult = true
+    )
 }
+
+//Headers(map={0=0, 1=1, 2=2}, subHeaders={2=Headers(map={0=0, 1=1, 2=2}, subHeaders={0=Headers(map={0=0, 1=1}, subHeaders={})})})
+//Headers(map={0=0, 1=1, 2=2, 3=2}, subHeaders={2=Headers(map={0=0, 1=0, 2=1, 3=2}, subHeaders={0=Headers(map={0=0, 1=1}, subHeaders={})})})

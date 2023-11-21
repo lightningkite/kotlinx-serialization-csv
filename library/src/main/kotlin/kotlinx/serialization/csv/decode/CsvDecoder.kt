@@ -2,15 +2,16 @@ package kotlinx.serialization.csv.decode
 
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.builtins.nullable
 import kotlinx.serialization.csv.Csv
-import kotlinx.serialization.csv.HeadersNotSupportedForSerialDescriptorException
 import kotlinx.serialization.csv.UnknownColumnHeaderException
 import kotlinx.serialization.csv.UnsupportedSerialDescriptorException
 import kotlinx.serialization.csv.config.CsvConfig
 import kotlinx.serialization.descriptors.PolymorphicKind
 import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.descriptors.SerialKind
 import kotlinx.serialization.descriptors.StructureKind
-import kotlinx.serialization.encoding.AbstractDecoder
 import kotlinx.serialization.encoding.CompositeDecoder
 import kotlinx.serialization.encoding.CompositeDecoder.Companion.UNKNOWN_NAME
 import kotlinx.serialization.modules.SerializersModule
@@ -24,7 +25,7 @@ internal abstract class CsvDecoder(
     protected val csv: Csv,
     protected val reader: CsvReader,
     private val parent: CsvDecoder?
-) : AbstractDecoder() {
+) : AbstractDecoderAlt() {
 
     override val serializersModule: SerializersModule
         get() = csv.serializersModule
@@ -111,11 +112,18 @@ internal abstract class CsvDecoder(
         return null
     }
 
+    fun skipEmpty(): Nothing? {
+        val value = reader.readColumn()
+        println("SKIPPING $value")
+        require(value == config.nullString) { "Expected '${config.nullString}' but was '$value'." }
+        return null
+    }
+
     override fun decodeEnum(enumDescriptor: SerialDescriptor): Int {
         return enumDescriptor.getElementIndex(decodeColumn())
     }
 
-    protected open fun decodeColumn() = reader.readColumn()
+    protected open fun decodeColumn() = reader.readColumn().also { println("READ COLUMN $it") }
 
     protected fun readHeaders(descriptor: SerialDescriptor) {
         if (config.hasHeaderRecord && headers == null) {
@@ -126,7 +134,7 @@ internal abstract class CsvDecoder(
     }
 
     private fun readHeaders(descriptor: SerialDescriptor, prefix: String): Headers {
-        val headers = Headers()
+        val headers = Headers(descriptor)
         var position = 0
         while (!reader.isDone && reader.isFirstRecord) {
             val offset = reader.offset
@@ -144,7 +152,10 @@ internal abstract class CsvDecoder(
             val headerIndex = descriptor.getElementIndex(header)
             if (headerIndex != UNKNOWN_NAME) {
                 headers[position] = headerIndex
+                println("SET $position TO $header")
                 reader.unmark()
+                val desc = descriptor.getElementDescriptor(headerIndex)
+                if(desc.kind == StructureKind.CLASS && desc.isNullable) position--
             } else {
                 val name = header.substringBefore(config.headerSeparator)
                 val nameIndex = descriptor.getElementIndex(name)
@@ -152,8 +163,9 @@ internal abstract class CsvDecoder(
                     val childDesc = descriptor.getElementDescriptor(nameIndex)
                     if (childDesc.kind is StructureKind.CLASS) {
                         reader.reset()
-                        headers[position] = nameIndex
-                        headers[nameIndex] = readHeaders(childDesc, "$prefix$name.")
+                        if(headers[position] == null)
+                            headers[position] = nameIndex
+                        headers[position] = readHeaders(childDesc, "$prefix$name.")
                     } else {
                         reader.unmark()
                     }
@@ -168,7 +180,7 @@ internal abstract class CsvDecoder(
             }
             position++
         }
-        return headers
+        return headers.also { println(it.toString()) }
     }
 
     protected fun readTrailingDelimiter() {
@@ -177,7 +189,7 @@ internal abstract class CsvDecoder(
         }
     }
 
-    internal class Headers {
+    internal class Headers(val descriptor: SerialDescriptor) {
         private val map = mutableMapOf<Int, Int>()
         private val subHeaders = mutableMapOf<Int, Headers>()
 
@@ -197,18 +209,71 @@ internal abstract class CsvDecoder(
         operator fun set(key: Int, value: Headers) {
             subHeaders[key] = value
         }
+
+        override fun toString(): String {
+            return "Headers(descriptor=${descriptor.serialName}, map=${map.mapValues { if(it.value in 0 until descriptor.elementsCount) descriptor.getElementName(it.value) else "???" }}, subHeaders=${subHeaders})"
+        }
     }
 
     override fun <T> decodeSerializableValue(deserializer: DeserializationStrategy<T>): T {
-        return if (config.deferToFormatWhenVariableColumns != null) {
+        if (config.deferToFormatWhenVariableColumns != null) {
             when (deserializer.descriptor.kind) {
                 is StructureKind.LIST,
                 is StructureKind.MAP,
                 is PolymorphicKind.OPEN -> {
-                    config.deferToFormatWhenVariableColumns!!.decodeFromString(deserializer, decodeColumn())
+                    return config.deferToFormatWhenVariableColumns!!.decodeFromString(deserializer, decodeColumn())
                 }
-                else -> super.decodeSerializableValue(deserializer)
+                else -> {}
             }
-        } else super.decodeSerializableValue(deserializer)
+        }
+        if(deserializer.descriptor.isNullable && deserializer.descriptor.kind == StructureKind.CLASS) {
+            val isPresent = reader.readColumn().toBoolean()
+            println("READ PRESENT $isPresent")
+            if(isPresent) {
+                return deserializer.deserialize(this)
+            } else {
+                virtualColumnAdvance()
+                decodeNulls(deserializer.descriptor, deserializer.descriptor.serialName)
+                @Suppress("UNCHECKED_CAST")
+                return null as T
+            }
+        } else {
+            return deserializer.deserialize(this)
+        }
+    }
+
+    protected open fun virtualColumnAdvance() {}
+
+    private fun decodeNulls(serializer: SerialDescriptor, name: String) {
+        if(serializer.kind == StructureKind.CLASS) {
+            for(index in (0 until serializer.elementsCount)) {
+                val sub = serializer.getElementDescriptor(index)
+                if(sub.isNullable) {
+                    println("Skipping present ${serializer.getElementName(index)}")
+                    skipEmpty()
+                }
+                decodeNulls(sub, serializer.getElementName(index))
+            }
+            println("Skipping ${name} end")
+        } else {
+            println("Skipping $name")
+            skipEmpty()
+        }
+    }
+
+    override fun <T : Any> decodeNullableSerializableValue(deserializer: DeserializationStrategy<T?>): T? {
+        val isNullabilitySupported = deserializer.descriptor.isNullable
+        return if (isNullabilitySupported || decodeNotNullMark()) decodeSerializableValue(deserializer) else decodeSerializableValue((deserializer as KSerializer<T>).nullable)
+    }
+
+    override fun <T : Any> decodeNullableSerializableElement(
+        descriptor: SerialDescriptor,
+        index: Int,
+        deserializer: DeserializationStrategy<T?>,
+        previousValue: T?
+    ): T? {
+        val isNullabilitySupported = deserializer.descriptor.isNullable
+        return if (isNullabilitySupported) decodeSerializableValue(deserializer, previousValue) else decodeSerializableValue((deserializer as KSerializer<T>).nullable, previousValue)
     }
 }
+

@@ -1,8 +1,11 @@
 package kotlinx.serialization.csv.encode
 
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.csv.Csv
+import kotlinx.serialization.descriptors.PolymorphicKind
 import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.descriptors.StructureKind
 import kotlinx.serialization.encoding.CompositeEncoder
 
 /**
@@ -40,5 +43,24 @@ internal class RecordListCsvEncoder(
         writer.beginRecord()
         super.encodeColumn(value, isNumeric, isNull)
         writer.endRecord()
+    }
+
+    override fun <T> encodeSerializableValue(serializer: SerializationStrategy<T>, value: T) {
+        if (config.deferToFormatWhenVariableColumns != null) {
+            when (serializer.descriptor.kind) {
+                is StructureKind.LIST,
+                is StructureKind.MAP,
+                is PolymorphicKind.OPEN -> {
+                    encodeColumn(
+                        value = config.deferToFormatWhenVariableColumns!!.encodeToString(serializer, value),
+                        isNumeric = false,
+                        isNull = false
+                    )
+                    return
+                }
+                else -> {}
+            }
+        }
+        serializer.serialize(this, value)
     }
 }

@@ -74,7 +74,18 @@ data class NestedRecord(
 )
 
 @Serializable
+data class NestedRecordWithNullableField(
+    val time: Int,
+    val name: String,
+    val data: DataWithNullableField?,
+    val alternative: String,
+)
+
+@Serializable
 data class Data(val location: Location, val speed: Int, val info: String)
+
+@Serializable
+data class DataWithNullableField(val location: Location?, val speed: Int, val info: String)
 
 @Serializable
 data class Location(val lat: Double, val lon: Double)

@@ -1,14 +1,13 @@
 package kotlinx.serialization.csv.encode
 
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerializationStrategy
+import kotlinx.serialization.builtins.nullable
 import kotlinx.serialization.csv.Csv
 import kotlinx.serialization.csv.HeadersNotSupportedForSerialDescriptorException
 import kotlinx.serialization.csv.UnsupportedSerialDescriptorException
-import kotlinx.serialization.descriptors.PolymorphicKind
-import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.descriptors.SerialKind
-import kotlinx.serialization.descriptors.StructureKind
+import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.AbstractEncoder
 import kotlinx.serialization.encoding.CompositeEncoder
 import kotlinx.serialization.modules.SerializersModule
@@ -146,6 +145,7 @@ internal abstract class CsvEncoder(
                     Unit
 
                 childDesc.elementsCount > 0 -> {
+                    if(childDesc.isNullable) writer.printColumn(name)
                     val headerSeparator = config.headerSeparator
                     printHeader("$name$headerSeparator", childDesc)
                 }
@@ -179,9 +179,44 @@ internal abstract class CsvEncoder(
                         isNumeric = false,
                         isNull = false
                     )
+                    return
                 }
-                else -> super.encodeSerializableValue(serializer, value)
+                else -> {}
             }
-        } else super.encodeSerializableValue(serializer, value)
+        }
+        if(serializer.descriptor.isNullable && serializer.descriptor.kind == StructureKind.CLASS && serializer.descriptor.elementsCount > 0) {
+            if(value == null) {
+                encodeBoolean(false)
+                encodeNulls(serializer.descriptor)
+            } else {
+                encodeBoolean(true)
+                serializer.serialize(this, value)
+            }
+        } else {
+            serializer.serialize(this, value)
+        }
+    }
+
+    private fun encodeNulls(serializer: SerialDescriptor) {
+        if(serializer.kind == StructureKind.CLASS) {
+            for(index in (0 until serializer.elementsCount)) {
+                val sub = serializer.getElementDescriptor(index)
+                if(sub.isNullable) {
+                    encodeNull()
+                }
+                encodeNulls(sub)
+            }
+        } else {
+            encodeNull()
+        }
+    }
+
+    override fun <T : Any> encodeNullableSerializableValue(serializer: SerializationStrategy<T>, value: T?) {
+        val isNullabilitySupported = serializer.descriptor.isNullable
+        if (isNullabilitySupported) {
+            // Instead of `serializer.serialize` to be able to intercept this
+            return encodeSerializableValue(serializer as SerializationStrategy<T?>, value)
+        }
+        return encodeSerializableValue((serializer as KSerializer<T>).nullable, value)
     }
 }

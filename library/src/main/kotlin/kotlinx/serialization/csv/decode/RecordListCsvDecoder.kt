@@ -1,7 +1,9 @@
 package kotlinx.serialization.csv.decode
 
+import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.csv.Csv
+import kotlinx.serialization.descriptors.PolymorphicKind
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.StructureKind
 import kotlinx.serialization.encoding.CompositeDecoder
@@ -69,5 +71,20 @@ internal class RecordListCsvDecoder(
         } else {
             reader.reset()
         }
+    }
+
+    override fun <T> decodeSerializableValue(deserializer: DeserializationStrategy<T>): T {
+        println("DECODING")
+        if (config.deferToFormatWhenVariableColumns != null) {
+            when (deserializer.descriptor.kind) {
+                is StructureKind.LIST,
+                is StructureKind.MAP,
+                is PolymorphicKind.OPEN -> {
+                    return config.deferToFormatWhenVariableColumns!!.decodeFromString(deserializer, decodeColumn())
+                }
+                else -> {}
+            }
+        }
+        return deserializer.deserialize(this)
     }
 }

@@ -29,17 +29,19 @@ internal class ClassCsvDecoder(
         elementIndex >= descriptor.elementsCount -> DECODE_DONE
         classHeaders != null && columnIndex >= classHeaders.size -> DECODE_DONE
 
-        classHeaders != null ->
+        classHeaders != null -> {
             when (val result = classHeaders[columnIndex]) {
                 UNKNOWN_NAME -> {
                     ignoreColumn()
                     decodeElementIndex(descriptor)
                 }
-                null -> UNKNOWN_NAME
-                else -> result
-            }
 
-        else -> elementIndex
+                null -> UNKNOWN_NAME
+                else -> result.also { println("${descriptor.serialName} decoded ${it} (${descriptor.getElementName(it)}) due to column ${columnIndex} in ${classHeaders.toString(descriptor)}") }
+            }
+        }
+
+        else -> elementIndex.also { println("${descriptor.serialName} decoded ${it} (${descriptor.getElementName(it)})") }
     }
 
     override fun beginStructure(descriptor: SerialDescriptor): CompositeDecoder {
@@ -83,5 +85,10 @@ internal class ClassCsvDecoder(
     private fun ignoreColumn() {
         reader.readColumn()
         columnIndex++
+    }
+
+    override fun virtualColumnAdvance() {
+        columnIndex++
+        elementIndex++
     }
 }

@@ -70,7 +70,8 @@ internal class CsvIgnoreUnknownColumnsTest {
                     ),
                     speed = 100,
                     info = "info"
-                )
+                ),
+                alternative = "Albert"
             ),
             NestedRecord(
                 time = 1,
@@ -82,7 +83,8 @@ internal class CsvIgnoreUnknownColumnsTest {
                     ),
                     speed = 50,
                     info = "info2"
-                )
+                ),
+                alternative = "Bill"
             )
         ),
         ListSerializer(NestedRecord.serializer())

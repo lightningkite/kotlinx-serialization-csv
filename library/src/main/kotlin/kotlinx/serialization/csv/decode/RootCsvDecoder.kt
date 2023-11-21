@@ -2,6 +2,8 @@ package kotlinx.serialization.csv.decode
 
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.builtins.nullable
 import kotlinx.serialization.csv.Csv
 import kotlinx.serialization.descriptors.PolymorphicKind
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -55,13 +57,25 @@ internal class RootCsvDecoder(
     }
 
     override fun <T> decodeSerializableValue(deserializer: DeserializationStrategy<T>): T {
-        return if (config.deferToFormatWhenVariableColumns != null) {
+        if (config.deferToFormatWhenVariableColumns != null) {
             when (deserializer.descriptor.kind) {
                 is PolymorphicKind.OPEN -> {
                     config.deferToFormatWhenVariableColumns!!.decodeFromString(deserializer, decodeColumn())
                 }
-                else -> deserializer.deserialize(this)
+                else -> {}
             }
-        } else deserializer.deserialize(this)
+        }
+        if(deserializer.descriptor.isNullable && deserializer.descriptor.kind == StructureKind.CLASS && deserializer.descriptor.elementsCount > 0) {
+            val isPresent = decodeBoolean()
+            println("Decoded present boolean ${isPresent}")
+            if(isPresent) {
+                return deserializer.deserialize(this)
+            } else {
+                @Suppress("UNCHECKED_CAST")
+                return null as T
+            }
+        } else {
+            return deserializer.deserialize(this)
+        }
     }
 }

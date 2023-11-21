@@ -124,7 +124,8 @@ class CsvHasHeaderRecordTest {
                     0.0,
                     1.0
                 ), 100, "info"
-            )
+            ),
+            "Albert"
         ),
         NestedRecord.serializer()
     )
@@ -143,7 +144,8 @@ class CsvHasHeaderRecordTest {
                         0.0,
                         1.0
                     ), 100, "info"
-                )
+                ),
+                "Albert"
             ),
             NestedRecord(
                 1,
@@ -153,7 +155,8 @@ class CsvHasHeaderRecordTest {
                         10.0,
                         20.0
                     ), 50, "info2"
-                )
+                ),
+                "Bill"
             )
         ),
         ListSerializer(NestedRecord.serializer())

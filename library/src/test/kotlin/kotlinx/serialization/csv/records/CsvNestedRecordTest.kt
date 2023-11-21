@@ -20,8 +20,7 @@ class CsvNestedRecordTest {
                     0.0,
                     1.0
                 ), 100, "info"
-            ),
-            "Albert"
+            )
         ),
         NestedRecord.serializer()
     )
@@ -38,8 +37,7 @@ class CsvNestedRecordTest {
                         0.0,
                         1.0
                     ), 100, "info"
-                ),
-                "Albert"
+                )
             ),
             NestedRecord(
                 1,
@@ -49,8 +47,7 @@ class CsvNestedRecordTest {
                         10.0,
                         20.0
                     ), 50, "info2"
-                ),
-                "Bob"
+                )
             )
         ),
         ListSerializer(NestedRecord.serializer())
@@ -69,8 +66,7 @@ class CsvNestedRecordTest {
                     0.0,
                     1.0
                 ), 100, "info"
-            ),
-            "Albert"
+            )
         ),
         NestedRecord.serializer()
     )
@@ -89,8 +85,7 @@ class CsvNestedRecordTest {
                         0.0,
                         1.0
                     ), 100, "info"
-                ),
-                "Albert"
+                )
             ),
             NestedRecord(
                 1,
@@ -100,8 +95,7 @@ class CsvNestedRecordTest {
                         10.0,
                         20.0
                     ), 50, "info2"
-                ),
-                "Bill"
+                )
             )
         ),
         ListSerializer(NestedRecord.serializer())

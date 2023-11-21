@@ -24,24 +24,28 @@ internal class ClassCsvDecoder(
     private var elementIndex = 0
     private var columnIndex = 0
 
-    override fun decodeElementIndex(descriptor: SerialDescriptor): Int = when {
-        reader.isDone -> DECODE_DONE
-        elementIndex >= descriptor.elementsCount -> DECODE_DONE
-        classHeaders != null && columnIndex >= classHeaders.size -> DECODE_DONE
+    override fun decodeElementIndex(descriptor: SerialDescriptor): Int {
+//        if(descriptor != classHeaders?.descriptor) throw Exception("ClassCsvDecoder with ${descriptor.serialName} cannot decode an index for ${classHeaders?.descriptor?.serialName}")
+        return when {
+            reader.isDone -> DECODE_DONE
+            elementIndex >= descriptor.elementsCount -> DECODE_DONE
+            classHeaders != null && columnIndex >= classHeaders.size -> DECODE_DONE
 
-        classHeaders != null -> {
-            when (val result = classHeaders[columnIndex]) {
-                UNKNOWN_NAME -> {
-                    ignoreColumn()
-                    decodeElementIndex(descriptor)
+            classHeaders != null -> {
+                println("${descriptor.serialName} decoded column index ${columnIndex} to be ${classHeaders[columnIndex]} (${classHeaders[columnIndex]?.takeIf { it >= 0 }?.let { descriptor.getElementName(it)}}) due to column ${columnIndex} in ${classHeaders}")
+                when (val result = classHeaders[columnIndex]) {
+                    UNKNOWN_NAME -> {
+                        ignoreColumn()
+                        decodeElementIndex(descriptor)
+                    }
+
+                    null -> UNKNOWN_NAME
+                    else -> result
                 }
-
-                null -> UNKNOWN_NAME
-                else -> result.also { println("${descriptor.serialName} decoded ${it} (${descriptor.getElementName(it)}) due to column ${columnIndex} in ${classHeaders.toString(descriptor)}") }
             }
-        }
 
-        else -> elementIndex.also { println("${descriptor.serialName} decoded ${it} (${descriptor.getElementName(it)})") }
+            else -> elementIndex.also { println("${descriptor.serialName} decoded ${it} (${descriptor.getElementName(it)}) because there were no class headers") }
+        }
     }
 
     override fun beginStructure(descriptor: SerialDescriptor): CompositeDecoder {
@@ -51,7 +55,7 @@ internal class ClassCsvDecoder(
                     csv,
                     reader,
                     this,
-                    classHeaders?.getSubHeaders(decodeElementIndex(descriptor))
+                    classHeaders?.let { it.getSubHeaders(columnIndex) ?: throw IllegalStateException("Could not find sub headers at index $elementIndex; see $classHeaders}") }
                 )
 
             else ->

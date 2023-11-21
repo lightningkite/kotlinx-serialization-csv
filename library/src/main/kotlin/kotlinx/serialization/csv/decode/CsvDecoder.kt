@@ -10,6 +10,7 @@ import kotlinx.serialization.csv.UnsupportedSerialDescriptorException
 import kotlinx.serialization.csv.config.CsvConfig
 import kotlinx.serialization.descriptors.PolymorphicKind
 import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.descriptors.SerialKind
 import kotlinx.serialization.descriptors.StructureKind
 import kotlinx.serialization.encoding.CompositeDecoder
 import kotlinx.serialization.encoding.CompositeDecoder.Companion.UNKNOWN_NAME
@@ -133,7 +134,7 @@ internal abstract class CsvDecoder(
     }
 
     private fun readHeaders(descriptor: SerialDescriptor, prefix: String): Headers {
-        val headers = Headers()
+        val headers = Headers(descriptor)
         var position = 0
         while (!reader.isDone && reader.isFirstRecord) {
             val offset = reader.offset
@@ -153,6 +154,8 @@ internal abstract class CsvDecoder(
                 headers[position] = headerIndex
                 println("SET $position TO $header")
                 reader.unmark()
+                val desc = descriptor.getElementDescriptor(headerIndex)
+                if(desc.kind == StructureKind.CLASS && desc.isNullable) position--
             } else {
                 val name = header.substringBefore(config.headerSeparator)
                 val nameIndex = descriptor.getElementIndex(name)
@@ -160,7 +163,9 @@ internal abstract class CsvDecoder(
                     val childDesc = descriptor.getElementDescriptor(nameIndex)
                     if (childDesc.kind is StructureKind.CLASS) {
                         reader.reset()
-                        headers[nameIndex] = readHeaders(childDesc, "$prefix$name.")
+                        if(headers[position] == null)
+                            headers[position] = nameIndex
+                        headers[position] = readHeaders(childDesc, "$prefix$name.")
                     } else {
                         reader.unmark()
                     }
@@ -175,7 +180,7 @@ internal abstract class CsvDecoder(
             }
             position++
         }
-        return headers.also { println(it.toString(descriptor)) }
+        return headers.also { println(it.toString()) }
     }
 
     protected fun readTrailingDelimiter() {
@@ -184,7 +189,7 @@ internal abstract class CsvDecoder(
         }
     }
 
-    internal class Headers {
+    internal class Headers(val descriptor: SerialDescriptor) {
         private val map = mutableMapOf<Int, Int>()
         private val subHeaders = mutableMapOf<Int, Headers>()
 
@@ -206,10 +211,7 @@ internal abstract class CsvDecoder(
         }
 
         override fun toString(): String {
-            return "Headers(map=${map}, subHeaders=${subHeaders})"
-        }
-        fun toString(context: SerialDescriptor): String {
-            return "Headers(map=${map.mapValues { if(it.value in 0 until context.elementsCount) context.getElementName(it.value) else "???" }})"
+            return "Headers(descriptor=${descriptor.serialName}, map=${map.mapValues { if(it.value in 0 until descriptor.elementsCount) descriptor.getElementName(it.value) else "???" }}, subHeaders=${subHeaders})"
         }
     }
 
@@ -224,7 +226,7 @@ internal abstract class CsvDecoder(
                 else -> {}
             }
         }
-        if(deserializer.descriptor.isNullable && deserializer.descriptor.kind == StructureKind.CLASS && deserializer.descriptor.elementsCount > 0) {
+        if(deserializer.descriptor.isNullable && deserializer.descriptor.kind == StructureKind.CLASS) {
             val isPresent = reader.readColumn().toBoolean()
             println("READ PRESENT $isPresent")
             if(isPresent) {

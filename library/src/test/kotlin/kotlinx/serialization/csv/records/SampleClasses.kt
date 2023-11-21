@@ -70,8 +70,7 @@ data class SerialNameRecord(
 data class NestedRecord(
     val time: Int,
     val name: String,
-    val data: Data,
-    val alternative: String
+    val data: Data
 )
 
 @Serializable

@@ -248,7 +248,7 @@ internal abstract class CsvDecoder(
         if(serializer.kind == StructureKind.CLASS) {
             for(index in (0 until serializer.elementsCount)) {
                 val sub = serializer.getElementDescriptor(index)
-                if(sub.isNullable) {
+                if(sub.isNullable && sub.kind == StructureKind.CLASS) {
                     println("Skipping present ${serializer.getElementName(index)}")
                     skipEmpty()
                 }

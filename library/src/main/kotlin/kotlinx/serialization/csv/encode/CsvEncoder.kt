@@ -184,7 +184,7 @@ internal abstract class CsvEncoder(
                 else -> {}
             }
         }
-        if(serializer.descriptor.isNullable && serializer.descriptor.kind == StructureKind.CLASS && serializer.descriptor.elementsCount > 0) {
+        if(serializer.descriptor.isNullable && serializer.descriptor.kind == StructureKind.CLASS) {
             if(value == null) {
                 encodeBoolean(false)
                 encodeNulls(serializer.descriptor)
@@ -201,7 +201,7 @@ internal abstract class CsvEncoder(
         if(serializer.kind == StructureKind.CLASS) {
             for(index in (0 until serializer.elementsCount)) {
                 val sub = serializer.getElementDescriptor(index)
-                if(sub.isNullable) {
+                if(sub.isNullable && sub.kind == StructureKind.CLASS) {
                     encodeNull()
                 }
                 encodeNulls(sub)

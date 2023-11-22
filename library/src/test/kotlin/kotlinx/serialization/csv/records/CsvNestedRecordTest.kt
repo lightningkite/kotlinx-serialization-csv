@@ -105,12 +105,21 @@ class CsvNestedRecordTest {
     fun testNestedRecordNullableListWithHeader() = Csv {
         hasHeaderRecord = true
     }.assertEncodeAndDecode(
-        "time,name,data,data.location,data.location.lat,data.location.lon,data.speed,data.info,alternative\n0,Alice,true,true,0.0,1.0,100,info,Albert\n1,Bob,false,,,,,,Bill\n3,Charlie,true,false,,,120,info3,Celina",
+        "time,name,data,data.location,data.location.lat,data.location.lon,data.speed,data.info,data2.location.lat,data2.location.lon,data2.speed,data2.info,alternative\n" +
+                "0,Alice,true,true,0.0,1.0,100,info,0.0,1.0,100,info,Albert\n" +
+                "1,Bob,false,,,,,,10.0,20.0,50,info2,Bill\n" +
+                "3,Charlie,true,false,,,120,,2.0,3.0,101,info3,Celina",
         listOf(
             NestedRecordWithNullableField(
                 0,
                 "Alice",
                 DataWithNullableField(
+                    Location(
+                        0.0,
+                        1.0
+                    ), 100, "info"
+                ),
+                Data(
                     Location(
                         0.0,
                         1.0
@@ -122,13 +131,25 @@ class CsvNestedRecordTest {
                 1,
                 "Bob",
                 null,
+                Data(
+                    Location(
+                        10.0,
+                        20.0
+                    ), 50, "info2"
+                ),
                 "Bill"
             ),
             NestedRecordWithNullableField(
                 3,
                 "Charlie",
                 DataWithNullableField(
-                    null, 120,  "info3"
+                    null, 120,  null
+                ),
+                Data(
+                    Location(
+                        2.0,
+                        3.0
+                    ), 101, "info3"
                 ),
                 "Celina"
             )
@@ -141,12 +162,20 @@ class CsvNestedRecordTest {
     fun testNestedRecordNullableListWithoutHeader() = Csv {
         hasHeaderRecord = false
     }.assertEncodeAndDecode(
-        "0,Alice,true,true,0.0,1.0,100,info,Albert\n1,Bob,false,,,,,,Bill\n3,Charlie,true,false,,,120,info3,Celina",
+                "0,Alice,true,true,0.0,1.0,100,info,0.0,1.0,100,info,Albert\n" +
+                "1,Bob,false,,,,,,10.0,20.0,50,info2,Bill\n" +
+                "3,Charlie,true,false,,,120,info3,2.0,3.0,101,info3,Celina",
         listOf(
             NestedRecordWithNullableField(
                 0,
                 "Alice",
                 DataWithNullableField(
+                    Location(
+                        0.0,
+                        1.0
+                    ), 100, "info"
+                ),
+                Data(
                     Location(
                         0.0,
                         1.0
@@ -158,6 +187,12 @@ class CsvNestedRecordTest {
                 1,
                 "Bob",
                 null,
+                Data(
+                    Location(
+                        10.0,
+                        20.0
+                    ), 50, "info2"
+                ),
                 "Bill"
             ),
             NestedRecordWithNullableField(
@@ -165,6 +200,12 @@ class CsvNestedRecordTest {
                 "Charlie",
                 DataWithNullableField(
                     null, 120,  "info3"
+                ),
+                Data(
+                    Location(
+                        2.0,
+                        3.0
+                    ), 101, "info3"
                 ),
                 "Celina"
             )

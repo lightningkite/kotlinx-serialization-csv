@@ -31,7 +31,6 @@ internal class RootCsvDecoder(
     }
 
     override fun beginStructure(descriptor: SerialDescriptor): CompositeDecoder {
-        println("BEGIN STRUCT ${descriptor.kind}")
         return when (descriptor.kind) {
             StructureKind.LIST ->
                 // Top level list is treated as list of multiple records
@@ -68,7 +67,6 @@ internal class RootCsvDecoder(
         }
         if(deserializer.descriptor.isNullable && deserializer.descriptor.kind == StructureKind.CLASS) {
             val isPresent = decodeBoolean()
-            println("Decoded present boolean ${isPresent}")
             if(isPresent) {
                 return deserializer.deserialize(this)
             } else {

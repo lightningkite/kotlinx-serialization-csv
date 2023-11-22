@@ -32,7 +32,6 @@ internal class ClassCsvDecoder(
             classHeaders != null && columnIndex >= classHeaders.size -> DECODE_DONE
 
             classHeaders != null -> {
-                println("${descriptor.serialName} decoded column index ${columnIndex} to be ${classHeaders[columnIndex]} (${classHeaders[columnIndex]?.takeIf { it >= 0 }?.let { descriptor.getElementName(it)}}) due to column ${columnIndex} in ${classHeaders}")
                 when (val result = classHeaders[columnIndex]) {
                     UNKNOWN_NAME -> {
                         ignoreColumn()
@@ -44,7 +43,7 @@ internal class ClassCsvDecoder(
                 }
             }
 
-            else -> elementIndex.also { println("${descriptor.serialName} decoded ${it} (${descriptor.getElementName(it)}) because there were no class headers") }
+            else -> elementIndex
         }
     }
 

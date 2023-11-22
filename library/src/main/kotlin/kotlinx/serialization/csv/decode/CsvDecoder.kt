@@ -114,7 +114,6 @@ internal abstract class CsvDecoder(
 
     fun skipEmpty(): Nothing? {
         val value = reader.readColumn()
-        println("SKIPPING $value")
         require(value == config.nullString) { "Expected '${config.nullString}' but was '$value'." }
         return null
     }
@@ -123,7 +122,7 @@ internal abstract class CsvDecoder(
         return enumDescriptor.getElementIndex(decodeColumn())
     }
 
-    protected open fun decodeColumn() = reader.readColumn().also { println("READ COLUMN $it") }
+    protected open fun decodeColumn() = reader.readColumn()
 
     protected fun readHeaders(descriptor: SerialDescriptor) {
         if (config.hasHeaderRecord && headers == null) {
@@ -152,7 +151,6 @@ internal abstract class CsvDecoder(
             val headerIndex = descriptor.getElementIndex(header)
             if (headerIndex != UNKNOWN_NAME) {
                 headers[position] = headerIndex
-                println("SET $position TO $header")
                 reader.unmark()
                 val desc = descriptor.getElementDescriptor(headerIndex)
                 if(desc.kind == StructureKind.CLASS && desc.isNullable) position--
@@ -180,7 +178,7 @@ internal abstract class CsvDecoder(
             }
             position++
         }
-        return headers.also { println(it.toString()) }
+        return headers
     }
 
     protected fun readTrailingDelimiter() {
@@ -228,7 +226,6 @@ internal abstract class CsvDecoder(
         }
         if(deserializer.descriptor.isNullable && deserializer.descriptor.kind == StructureKind.CLASS) {
             val isPresent = reader.readColumn().toBoolean()
-            println("READ PRESENT $isPresent")
             if(isPresent) {
                 return deserializer.deserialize(this)
             } else {
@@ -249,14 +246,11 @@ internal abstract class CsvDecoder(
             for(index in (0 until serializer.elementsCount)) {
                 val sub = serializer.getElementDescriptor(index)
                 if(sub.isNullable && sub.kind == StructureKind.CLASS) {
-                    println("Skipping present ${serializer.getElementName(index)}")
                     skipEmpty()
                 }
                 decodeNulls(sub, serializer.getElementName(index))
             }
-            println("Skipping ${name} end")
         } else {
-            println("Skipping $name")
             skipEmpty()
         }
     }

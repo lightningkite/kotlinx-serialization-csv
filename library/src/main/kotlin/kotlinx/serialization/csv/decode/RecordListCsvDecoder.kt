@@ -74,7 +74,6 @@ internal class RecordListCsvDecoder(
     }
 
     override fun <T> decodeSerializableValue(deserializer: DeserializationStrategy<T>): T {
-        println("DECODING")
         if (config.deferToFormatWhenVariableColumns != null) {
             when (deserializer.descriptor.kind) {
                 is StructureKind.LIST,

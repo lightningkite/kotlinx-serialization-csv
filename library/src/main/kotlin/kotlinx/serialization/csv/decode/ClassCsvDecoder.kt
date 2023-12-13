@@ -28,9 +28,7 @@ internal class ClassCsvDecoder(
 //        if(descriptor != classHeaders?.descriptor) throw Exception("ClassCsvDecoder with ${descriptor.serialName} cannot decode an index for ${classHeaders?.descriptor?.serialName}")
         return when {
             reader.isDone -> DECODE_DONE
-            elementIndex >= descriptor.elementsCount -> DECODE_DONE
             classHeaders != null && columnIndex >= classHeaders.size -> DECODE_DONE
-
             classHeaders != null -> {
                 when (val result = classHeaders[columnIndex]) {
                     UNKNOWN_NAME -> {
@@ -43,6 +41,7 @@ internal class ClassCsvDecoder(
                 }
             }
 
+            elementIndex >= descriptor.elementsCount -> DECODE_DONE
             else -> elementIndex
         }
     }

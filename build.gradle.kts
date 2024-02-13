@@ -1,44 +1,23 @@
-plugins {
-    base
-    kotlin("jvm") version "1.4.10" apply false
-    id("net.researchgate.release") version "2.8.1"
-    id("io.codearte.nexus-staging") version "0.22.0"
-}
 
-val serializationVersion = "1.0.0"
 
-allprojects {
-    group = "com.lightningkite"
-
-    extra["serializationVersion"] = serializationVersion
-
+buildscript {
+    val kotlinVersion:String by extra
     repositories {
-        jcenter()
+        maven(url = "https://s01.oss.sonatype.org/content/repositories/releases/")
         mavenCentral()
     }
-}
-
-// Use `./gradlew release` to create a tagged release commit
-release {
-    preTagCommitMessage = "[Gradle Release Plugin] Release version"
-    tagCommitMessage = "[Gradle Release Plugin] Release version"
-    newVersionCommitMessage = "[Gradle Release Plugin] New version"
-
-    git {
-        requireBranch = "main"
+    dependencies {
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
+        classpath("org.jetbrains.dokka:dokka-gradle-plugin:1.9.10")
+        classpath("com.lightningkite:deploy-helpers:0.0.7")
     }
 }
+allprojects {
+    group = "com.lightningkite"
+    repositories {
+        google()
+        mavenCentral()
 
-val mavenCentralUsername: String? by project
-val mavenCentralPassword: String? by project
-nexusStaging {
-    packageGroup = "com.lightningkite"
-    username = mavenCentralUsername
-    password = mavenCentralPassword
-    numberOfRetries = 60
-    delayBetweenRetriesInMillis = 10_000
+    }
+    tasks.withType<Jar> { duplicatesStrategy = DuplicatesStrategy.EXCLUDE }
 }
-
-fun net.researchgate.release.ReleaseExtension.git(
-    configure: net.researchgate.release.GitAdapter.GitConfig.() -> Unit
-) = (getProperty("git") as net.researchgate.release.GitAdapter.GitConfig).configure()

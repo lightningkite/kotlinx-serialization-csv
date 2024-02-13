@@ -1,4 +1,4 @@
 rootProject.name = "kotlinx-serialization-csv"
 
-include(":library")
+include(":kotlinx-serialization-csv")
 include(":application")
